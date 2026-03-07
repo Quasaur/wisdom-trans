@@ -109,6 +109,11 @@ class WisdomTranslator:
         bold = tkfont.Font(family="Helvetica", size=11, weight="bold")
         mono = tkfont.Font(family="Menlo", size=11)
 
+        # Give all four LabelFrame titles the same bold font as the
+        # "English" label above the input box.
+        style = ttk.Style()
+        style.configure("Bold.TLabelframe.Label", font=bold)
+
         # ── Scrollable canvas (whole-window scroll) ────────────────────
         vsb = ttk.Scrollbar(self.root, orient=tk.VERTICAL)
         vsb.pack(side=tk.RIGHT, fill=tk.Y)
@@ -153,6 +158,9 @@ class WisdomTranslator:
             insertbackground=_TEXT_FG,
             selectbackground=_SEL_BG,
             selectforeground=_SEL_FG,
+            highlightthickness=2,
+            highlightbackground="#FFD700",
+            highlightcolor="#FFD700",
         )
         en_sb = ttk.Scrollbar(en_wrap, orient=tk.VERTICAL, command=self.en_text.yview)
         self.en_text.configure(yscrollcommand=en_sb.set)
@@ -194,7 +202,7 @@ class WisdomTranslator:
     def _build_output_panel(
         self, parent: ttk.Frame, lang_name: str, bold, mono, row: int, col: int
     ) -> None:
-        wrapper = ttk.LabelFrame(parent, text=f"  {lang_name}  ", padding=(8, 6))
+        wrapper = ttk.LabelFrame(parent, text=f"  {lang_name}  ", padding=(8, 6), style="Bold.TLabelframe")
         wrapper.grid(row=row, column=col, sticky="nsew", padx=4, pady=4)
         wrapper.columnconfigure(0, weight=1)
         wrapper.rowconfigure(0, weight=1)
@@ -211,6 +219,9 @@ class WisdomTranslator:
             pady=6,
             background=_CTRL_BG,
             foreground=_TEXT_FG,
+            highlightthickness=2,
+            highlightbackground="#FFD700",
+            highlightcolor="#FFD700",
         )
         sb = ttk.Scrollbar(wrapper, orient=tk.VERTICAL, command=tw.yview)
         tw.configure(yscrollcommand=sb.set)
@@ -307,7 +318,7 @@ class WisdomTranslator:
 # Entry point
 # ---------------------------------------------------------------------------
 def main() -> None:
-    _macos_rename_app("Wisdom-Translator")   # must run before tk.Tk()
+    _macos_rename_app("Wisdom Translator")   # must run before tk.Tk()
     root = tk.Tk()
     root.minsize(760, 560)
     WisdomTranslator(root)
