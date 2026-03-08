@@ -322,7 +322,7 @@ class WisdomTranslator:
                     )
             except Exception as exc:  # noqa: BLE001
                 results[lang_name] = f"[Error: {exc}]"
-            results[lang_name] = re.sub(r" {2,}", " ", results[lang_name])
+            results[lang_name] = re.sub(r"[^\S\n]{2,}", " ", results[lang_name])
         self.root.after(0, self._apply_results, results)
 
     def _apply_results(self, results: dict[str, str]) -> None:
