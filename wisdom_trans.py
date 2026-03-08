@@ -315,7 +315,9 @@ class WisdomTranslator:
             try:
                 if code == "zh-CN":
                     zh = GoogleTranslator(source="en", target="zh-CN").translate(text)
-                    results[lang_name] = " ".join(lazy_pinyin(zh, style=Style.TONE))
+                    results[lang_name] = " ".join(
+                        p.strip() for p in lazy_pinyin(zh, style=Style.TONE)
+                    )
                 else:
                     results[lang_name] = (
                         GoogleTranslator(source="en", target=code).translate(text) or ""
