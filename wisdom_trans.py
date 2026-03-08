@@ -315,9 +315,21 @@ class WisdomTranslator:
             try:
                 if code == "zh-CN":
                     zh = GoogleTranslator(source="en", target="zh-CN").translate(text)
-                    results[lang_name] = " ".join(
+                    pinyin = " ".join(
                         p.strip() for p in lazy_pinyin(zh, style=Style.TONE)
                     )
+                    # Convert full-width CJK punctuation to ASCII equivalents so
+                    # they don't render as double-width characters in the output.
+                    _fw_map = {
+                        ord("："): ":", ord("；"): ";", ord("，"): ",",
+                        ord("。"): ".", ord("！"): "!", ord("？"): "?",
+                        ord("「"): '"', ord("」"): '"',
+                        ord("『"): "'", ord("』"): "'",
+                        ord("【"): "[", ord("】"): "]",
+                        ord("《"): "<", ord("》"): ">",
+                        ord("—"): "-", ord("…"): "...",
+                    }
+                    results[lang_name] = pinyin.translate(_fw_map)
                 else:
                     results[lang_name] = (
                         GoogleTranslator(source="en", target=code).translate(text) or ""
