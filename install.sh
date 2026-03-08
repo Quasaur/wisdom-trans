@@ -242,4 +242,5 @@ ok "App bundle created: $APP"
 # ── Done ───────────────────────────────────────────────────────────────────
 print "\n✅  Installation complete!\n"
 print "  • Terminal:  wisdom-translator"
-print "  • Spotlight: ⌘ Space → type 'Wisdom'\n"
+print "  • Spotlight: ⌘ Space → type 'Wisdom'"
+print "  • Settings:  ~/.config/wisdom-trans/prefs.json (created on first use)\n"

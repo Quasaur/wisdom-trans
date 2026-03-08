@@ -6,9 +6,11 @@ Run: python3 wisdom_trans.py
 
 import ctypes
 import ctypes.util
+import json
 import sys
 import threading
 import tkinter as tk
+from pathlib import Path
 from tkinter import font as tkfont
 from tkinter import ttk
 
@@ -18,10 +20,15 @@ from pypinyin import Style, lazy_pinyin
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-MAX_CHARS   = 1000
-DEBOUNCE_MS = 900
-IN_HEIGHT   = 6   # rows — English input box
-OUT_HEIGHT  = 7   # rows — each translation box
+MAX_CHARS    = 1000
+DEBOUNCE_MS  = 900
+IN_HEIGHT    = 6   # rows — English input box
+OUT_HEIGHT   = 7   # rows — each translation box
+BASE_FONT_SZ = 11  # pt — starting size for all text widgets
+FONT_STEP    = 2   # pt — increment per zoom level
+MAX_ZOOM     = 3   # maximum number of zoom-in steps
+
+PREFS_FILE = Path.home() / ".config" / "wisdom-trans" / "prefs.json"
 
 # macOS system color tokens (auto-adapt to Light / Dark mode)
 _FIELD_BG = "systemTextBackgroundColor"
@@ -89,6 +96,24 @@ def _macos_rename_app(name: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Preferences (persist zoom level across runs)
+# ---------------------------------------------------------------------------
+def _load_prefs() -> dict:
+    try:
+        return json.loads(PREFS_FILE.read_text())
+    except Exception:
+        return {}
+
+
+def _save_prefs(data: dict) -> None:
+    try:
+        PREFS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PREFS_FILE.write_text(json.dumps(data))
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 class WisdomTranslator:
@@ -100,14 +125,22 @@ class WisdomTranslator:
 
         self._debounce_id: str | None = None
         self._last_translated: str = ""
+        self._zoom_level: int = _load_prefs().get("zoom_level", 0)
+
+        # Shared font objects — configuring size here updates every widget.
+        initial_size = BASE_FONT_SZ + self._zoom_level * FONT_STEP
+        self._bold_font = tkfont.Font(family="Helvetica", size=initial_size, weight="bold")
+        self._mono_font = tkfont.Font(family="Menlo",     size=initial_size)
+
         self._build_ui()
+        self._bind_zoom_keys()
 
     # ------------------------------------------------------------------
     # UI construction
     # ------------------------------------------------------------------
     def _build_ui(self) -> None:
-        bold = tkfont.Font(family="Helvetica", size=11, weight="bold")
-        mono = tkfont.Font(family="Menlo", size=11)
+        bold = self._bold_font
+        mono = self._mono_font
 
         # Give all four LabelFrame titles the same bold font as the
         # "English" label above the input box.
@@ -210,7 +243,7 @@ class WisdomTranslator:
         tw = tk.Text(
             wrapper,
             height=OUT_HEIGHT,
-            font=tkfont.Font(family="Menlo", size=11),
+            font=mono,
             wrap=tk.WORD,
             state=tk.DISABLED,
             relief=tk.FLAT,
@@ -302,8 +335,25 @@ class WisdomTranslator:
         self.trans_btn.configure(state=tk.NORMAL)
 
     # ------------------------------------------------------------------
-    # Clipboard
+    # Font zoom  (Cmd++  /  Cmd+-)
     # ------------------------------------------------------------------
+    def _bind_zoom_keys(self) -> None:
+        # Cmd+= fires on the unshifted key; Cmd+shift+= (i.e. Cmd++) fires both.
+        self.root.bind_all("<Command-equal>", lambda e: self._zoom(+1))
+        self.root.bind_all("<Command-plus>",  lambda e: self._zoom(+1))
+        self.root.bind_all("<Command-minus>", lambda e: self._zoom(-1))
+
+    def _zoom(self, direction: int) -> None:
+        new_level = self._zoom_level + direction
+        if new_level < 0 or new_level > MAX_ZOOM:
+            return
+        self._zoom_level = new_level
+        new_size = BASE_FONT_SZ + self._zoom_level * FONT_STEP
+        self._bold_font.configure(size=new_size)
+        self._mono_font.configure(size=new_size)
+        _save_prefs({"zoom_level": self._zoom_level})
+
+
     def _copy(self, tw: tk.Text) -> None:
         content = tw.get("1.0", tk.END).strip()
         if not content:
