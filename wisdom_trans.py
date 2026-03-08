@@ -7,6 +7,7 @@ Run: python3 wisdom_trans.py
 import ctypes
 import ctypes.util
 import json
+import re
 import sys
 import threading
 import tkinter as tk
@@ -321,6 +322,7 @@ class WisdomTranslator:
                     )
             except Exception as exc:  # noqa: BLE001
                 results[lang_name] = f"[Error: {exc}]"
+            results[lang_name] = re.sub(r" {2,}", " ", results[lang_name])
         self.root.after(0, self._apply_results, results)
 
     def _apply_results(self, results: dict[str, str]) -> None:
