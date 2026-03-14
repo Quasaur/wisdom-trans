@@ -24,7 +24,7 @@ from pypinyin import Style, lazy_pinyin
 MAX_CHARS    = 1000
 DEBOUNCE_MS  = 900
 IN_HEIGHT    = 6   # rows — English input box
-OUT_HEIGHT   = 7   # rows — each translation box
+OUT_HEIGHT   = 8   # rows — each translation box (increased by ~10%)
 BASE_FONT_SZ = 11  # pt — starting size for all text widgets
 FONT_STEP    = 2   # pt — increment per zoom level
 MAX_ZOOM     = 3   # maximum number of zoom-in steps
